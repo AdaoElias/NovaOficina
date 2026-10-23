@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block titulo %}{% if veiculo %}Editar{% else %}Novo{% endif %} Veículo - Nova Oficina{% endblock %}
+{% block subtitulo %}{% if veiculo %}Editar{% else %}Novo{% endif %} Veículo{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form method="post" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Cliente *</label>
+                <select name="cliente_id" class="form-select" required>
+                    <option value="">-- Selecione --</option>
+                    {% for c in clientes %}
+                    <option value="{{ c.id }}" {% if veiculo and veiculo.cliente_id == c.id %}selected{% endif %}>{{ c.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Placa *</label>
+                <input type="text" name="placa" class="form-control text-uppercase" value="{{ veiculo.placa if veiculo else '' }}" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Marca</label>
+                <select name="marca_id" class="form-select" onchange="carregarModelos(this.value)">
+                    <option value="">-- Selecione --</option>
+                    {% for m in marcas %}
+                    <option value="{{ m.id }}" {% if veiculo and veiculo.marca_id == m.id %}selected{% endif %}>{{ m.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Modelo</label>
+                <div class="input-group">
+                    <select name="modelo_id" class="form-select" id="modelo_select">
+                        <option value="">-- Selecione --</option>
+                        {% for mo in modelos %}
+                        <option value="{{ mo.id }}" {% if veiculo and veiculo.modelo_id == mo.id %}selected{% endif %}>{{ mo.nome }}</option>
+                        {% endfor %}
+                        <option value="__outro__">Outro (digitar)</option>
+                    </select>
+                    <input type="text" name="modelo_novo" class="form-control" id="modelo_novo" placeholder="Novo modelo..." style="display:none">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Ano</label>
+                <select name="ano" class="form-select">
+                    <option value="">--</option>
+                    {% for a in range(2026, 1969, -1) %}
+                    <option value="{{ a }}" {% if veiculo and veiculo.ano == a %}selected{% endif %}>{{ a }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Chassi</label>
+                <input type="text" name="chassi" class="form-control" value="{{ veiculo.chassi if veiculo else '' }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Cor</label>
+                <select name="cor_id" class="form-select">
+                    <option value="">--</option>
+                    {% for c in cores %}
+                    <option value="{{ c.id }}" {% if veiculo and veiculo.cor_id == c.id %}selected{% endif %}>{{ c.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Categoria</label>
+                <select name="categoria_id" class="form-select">
+                    <option value="">--</option>
+                    {% for cat in categorias %}
+                    <option value="{{ cat.id }}" {% if veiculo and veiculo.categoria_id == cat.id %}selected{% endif %}>{{ cat.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12">
+                <label class="form-label">Observação</label>
+                <textarea name="observacao" class="form-control" rows="2">{{ veiculo.observacao if veiculo else '' }}</textarea>
+            </div>
+            <div class="col-12">
+                <button class="btn btn-primary">Salvar</button>
+                <a href="{{ url_for('listar_veiculos') }}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function carregarModelos(marcaId) {
+    if (!marcaId) return;
+    fetch('/modelos_por_marca?marca_id=' + marcaId).then(r=>r.json()).then(dados=>{
+        var sel = document.getElementById('modelo_select');
+        sel.innerHTML = '<option value="">-- Selecione --</option>';
+        dados.forEach(function(m){ sel.innerHTML += '<option value="'+m.id+'">'+m.nome+'</option>'; });
+        sel.innerHTML += '<option value="__outro__">Outro (digitar)</option>';
+    });
+}
+document.getElementById('modelo_select').addEventListener('change', function() {
+    document.getElementById('modelo_novo').style.display = this.value === '__outro__' ? '' : 'none';
+});
+</script>
+{% endblock %}

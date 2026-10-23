@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block titulo %}Dashboard - Nova Oficina{% endblock %}
+{% block subtitulo %}Dashboard{% endblock %}
+{% block content %}
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card text-center p-3 border-0 shadow-sm">
+            <div class="fs-2 text-primary"><i class="bi bi-people"></i></div>
+            <div class="fs-3 fw-bold mt-1">{{ stats.clientes }}</div>
+            <div class="text-muted small">Clientes</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center p-3 border-0 shadow-sm">
+            <div class="fs-2 text-success"><i class="bi bi-car-front"></i></div>
+            <div class="fs-3 fw-bold mt-1">{{ stats.veiculos }}</div>
+            <div class="text-muted small">Veículos</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center p-3 border-0 shadow-sm">
+            <div class="fs-2 text-warning"><i class="bi bi-clipboard2-check"></i></div>
+            <div class="fs-3 fw-bold mt-1">{{ stats.os_abertas }}</div>
+            <div class="text-muted small">OS Abertas</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center p-3 border-0 shadow-sm">
+            <div class="fs-2 text-danger"><i class="bi bi-gear"></i></div>
+            <div class="fs-3 fw-bold mt-1">{{ stats.pecas }}</div>
+            <div class="text-muted small">Peças</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center p-3 border-0 shadow-sm">
+            <div class="fs-2 text-info"><i class="bi bi-cash-coin"></i></div>
+            <div class="fs-3 fw-bold mt-1">R$ {{ "%.0f"|format(stats.faturamento_mes or 0) }}</div>
+            <div class="text-muted small">Faturamento (mês)</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center p-3 border-0 shadow-sm">
+            <div class="fs-2 text-secondary"><i class="bi bi-cart"></i></div>
+            <div class="fs-3 fw-bold mt-1">R$ {{ "%.0f"|format(stats.vendas_mes or 0) }}</div>
+            <div class="text-muted small">Vendas (mês)</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center p-3 border-0 shadow-sm">
+            <div class="fs-2 text-success"><i class="bi bi-check-circle"></i></div>
+            <div class="fs-3 fw-bold mt-1">{{ stats.os_fechadas_mes }}</div>
+            <div class="text-muted small">OS Fechadas (mês)</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center p-3 border-0 shadow-sm">
+            <div class="fs-2 text-danger"><i class="bi bi-exclamation-triangle"></i></div>
+            <div class="fs-3 fw-bold mt-1">{{ stats.pecas_baixa }}</div>
+            <div class="text-muted small">Peças Estoque Baixo</div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white"><strong>Últimas Ordens de Serviço</strong></div>
+    <div class="card-body p-0">
+        <table class="table table-sm mb-0">
+            <thead><tr><th>Nº</th><th>Data</th><th>Cliente</th><th>Status</th><th>Total</th></tr></thead>
+            <tbody>
+                {% for o in os_recentes %}
+                <tr>
+                    <td><a href="{{ url_for('editar_os', id=o.id) }}">#{{ o.id }}</a></td>
+                    <td>{{ o.data_abertura | date_br }}</td>
+                    <td>{{ o.cliente_nome }}</td>
+                    <td><span class="badge bg-{{ 'warning' if o.status=='aberta' else 'primary' if o.status=='em_andamento' else 'success' if o.status=='fechada' else 'secondary' }}">{{ o.status }}</span></td>
+                    <td>R$ {{ "%.2f"|format(o.total_geral or 0) }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" class="text-center text-muted py-3">Nenhuma OS</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

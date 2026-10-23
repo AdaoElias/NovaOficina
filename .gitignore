@@ -1,0 +1,35 @@
+# Banco de dados local (SQLite) - em produção usa DATABASE_URL (PostgreSQL)
+oficina.db
+oficina.db-journal
+oficina.db-wal
+oficina.db-shm
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Arquivos de execução/logs locais
+app_out.txt
+app_err.txt
+iniciar.bat
+iniciar.ps1
+*.log
+
+# Documentação local / migração
+documentacao.docx
+gerar_docx.py
+popular_teste.py
+migrar.py
+
+# Uploads (não versionar arquivos enviados)
+static/uploads/
+
+# Editor / SO
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

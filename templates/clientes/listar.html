@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block titulo %}Clientes - Nova Oficina{% endblock %}
+{% block subtitulo %}Clientes{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <form class="d-flex gap-2" method="get">
+        <input type="text" name="busca" class="form-control form-control-sm" placeholder="Buscar..." value="{{ busca }}" style="width:250px">
+        <button class="btn btn-sm btn-outline-primary"><i class="bi bi-search"></i></button>
+    </form>
+    <a href="{{ url_for('criar_cliente') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus"></i> Novo Cliente</a>
+</div>
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-sm mb-0">
+                <thead><tr><th>ID</th><th>Nome</th><th>Telefone</th><th>Email</th><th>Cidade</th><th>Último Serviço</th><th>Ações</th></tr></thead>
+                <tbody>
+                    {% for c in clientes %}
+                    <tr>
+                        <td>{{ c.id }}</td>
+                        <td>{{ c.nome }}</td>
+                        <td>{{ c.telefone or '-' }}</td>
+                        <td>{{ c.email or '-' }}</td>
+                        <td>{{ c.cidade or '-' }}</td>
+                        <td>{{ c.ultimo_servico | date_br }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-info" onclick="mostrarQR({{ c.id }}, '{{ c.nome|e }}', '{{ c.telefone|e }}')" title="QR Code"><i class="bi bi-qr-code"></i></button>
+                            {% if c.token %}
+                            <button class="btn btn-sm btn-outline-success" onclick="enviarLink({{ c.id }}, '{{ c.token }}', '{{ c.telefone|e }}')" title="Enviar link via WhatsApp"><i class="bi bi-whatsapp"></i></button>
+                            {% endif %}
+                            <a href="{{ url_for('editar_cliente', id=c.id) }}" class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></a>
+                            <form method="post" action="{{ url_for('excluir_cliente', id=c.id) }}" class="d-inline" onsubmit="return confirm('Excluir {{ c.nome }}?')">
+                                <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="7" class="text-center text-muted py-3">Nenhum cliente encontrado</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="qrModal" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content text-center">
+            <div class="modal-header border-0 pb-0">
+                <h6 class="modal-title" id="qrTitle">QR Code</h6>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="qrcode" class="d-inline-block"></div>
+                <p class="mt-2 mb-0 text-muted small" id="qrInfo"></p>
+            </div>
+            <div class="modal-footer border-0 pt-0 justify-content-center">
+                <a href="#" class="btn btn-sm btn-primary" id="btnPrintQR" target="_blank"><i class="bi bi-printer"></i> Imprimir</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+var qrCodeInstance = null;
+var qrClienteId = null;
+function mostrarQR(id, nome, telefone) {
+    qrClienteId = id;
+    var dados = 'Cliente: ' + nome + '\nID: ' + id + '\nTel: ' + (telefone || '-');
+    document.getElementById('qrInfo').textContent = nome + (telefone ? ' - ' + telefone : '');
+    document.getElementById('qrcode').innerHTML = '';
+    qrCodeInstance = new QRCode(document.getElementById('qrcode'), {
+        text: dados, width: 200, height: 200,
+        colorDark: '#1a3c6e', colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H
+    });
+    document.getElementById('btnPrintQR').href = '/clientes/' + id + '/qrcode';
+    new bootstrap.Modal(document.getElementById('qrModal')).show();
+}
+function enviarLink(id, token, telefone) {
+    var base = window.location.origin;
+    var link = base + '/c/' + token;
+    var msg = encodeURIComponent('Ol\u00e1! Acompanhe seus dados na oficina pelo link:\n' + link);
+    if (telefone) {
+        var tel = telefone.replace(/\D/g, '');
+        if (tel.length === 11 || tel.length === 10) {
+            window.open('https://wa.me/55' + tel + '?text=' + msg, '_blank');
+            return;
+        }
+    }
+    navigator.clipboard.writeText(link).then(function() {
+        alert('Link copiado para a \u00e1rea de transfer\u00eancia:\n' + link);
+    });
+}
+</script>
+{% endblock %}

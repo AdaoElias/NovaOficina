@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block titulo %}Peças / Estoque - Nova Oficina{% endblock %}
+{% block subtitulo %}Peças / Estoque{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <form class="d-flex gap-2" method="get">
+        <input type="text" name="busca" class="form-control form-control-sm" placeholder="Nome, código, fornecedor..." value="{{ busca }}" style="width:300px">
+        <button class="btn btn-sm btn-outline-primary"><i class="bi bi-search"></i></button>
+    </form>
+    <a href="{{ url_for('criar_peca') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus"></i> Nova Peça</a>
+</div>
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-sm mb-0">
+                <thead><tr><th>Código</th><th>Nome</th><th>Preço Venda</th><th>Estoque</th><th>Est. Mín.</th><th>Categoria</th><th>Fornecedor</th><th>Ações</th></tr></thead>
+                <tbody>
+                    {% for p in pecas %}
+                    <tr>
+                        <td>{{ p.codigo or '-' }}</td>
+                        <td>{{ p.nome }}</td>
+                        <td>R$ {{ "%.2f"|format(p.preco_venda or 0) }}</td>
+                        <td><span class="badge bg-{{ 'success' if p.estoque_atual > p.estoque_minimo else 'warning' if p.estoque_atual > 0 else 'danger' }}">{{ p.estoque_atual }}</span></td>
+                        <td>{{ p.estoque_minimo }}</td>
+                        <td>{{ p.categoria_nome or '-' }}</td>
+                        <td>{{ p.fornecedor or '-' }}</td>
+                        <td>
+                            <a href="{{ url_for('editar_peca', id=p.id) }}" class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></a>
+                            <form method="post" action="{{ url_for('excluir_peca', id=p.id) }}" class="d-inline" onsubmit="return confirm('Excluir {{ p.nome }}?')">
+                                <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="8" class="text-center text-muted py-3">Nenhuma peça encontrada</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

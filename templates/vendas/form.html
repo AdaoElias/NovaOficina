@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+{% block titulo %}{% if venda %}Editar{% else %}Nova{% endif %} Venda - Nova Oficina{% endblock %}
+{% block subtitulo %}{% if venda %}Editar{% else %}Nova{% endif %} Venda{% endblock %}
+{% block content %}
+<form method="post" id="formVenda">
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Cliente</label>
+                    <select name="cliente_id" class="form-select">
+                        <option value="">-- Selecione --</option>
+                        {% for c in clientes %}
+                        <option value="{{ c.id }}" {% if venda and venda.cliente_id == c.id %}selected{% endif %}>{{ c.nome }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header">
+            <span><i class="bi bi-upc-scan"></i> Itens da Venda</span>
+        </div>
+        <div class="card-body">
+            <div class="row g-2 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Peça</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="pesquisa_peca" placeholder="Digite o nome da peça..." list="lista_pecas">
+                        <datalist id="lista_pecas">
+                            {% for p in pecas %}
+                            <option value="{{ p.nome }}" data-id="{{ p.id }}" data-preco="{{ p.preco_venda or 0 }}" data-estoque="{{ p.estoque_atual or 0 }}"></option>
+                            {% endfor %}
+                        </datalist>
+                        <select class="form-select" id="select_peca" style="max-width:200px">
+                            <option value="">--</option>
+                            {% for p in pecas %}
+                            <option value="{{ p.id }}" data-nome="{{ p.nome }}" data-preco="{{ p.preco_venda or 0 }}" data-estoque="{{ p.estoque_atual or 0 }}">{{ p.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Qtd</label>
+                    <input type="number" id="item_qtd" class="form-control" value="1" min="1">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Valor Unit.</label>
+                    <input type="number" step="0.01" id="item_valor" class="form-control" value="0">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="button" class="btn btn-primary w-100" id="btnAdicionarItem"><i class="bi bi-cart-plus"></i> Adicionar</button>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-sm mb-0" id="tabelaItens">
+                    <thead><tr><th>Peça</th><th>Qtd</th><th>Valor Unit.</th><th>Subtotal</th><th></th></tr></thead>
+                    <tbody id="corpoItens">
+                        {% if venda and itens %}
+                        {% for i in itens %}
+                        <tr data-id="{{ i.peca_id }}" data-qtd="{{ i.quantidade }}" data-valor="{{ i.valor_unitario }}">
+                            <td>{{ i.peca_nome }}</td>
+                            <td>{{ i.quantidade }}</td>
+                            <td>R$ {{ "%.2f"|format(i.valor_unitario) }}</td>
+                            <td class="subtotal">R$ {{ "%.2f"|format(i.subtotal) }}</td>
+                            <td><button type="button" class="btn btn-sm btn-outline-danger py-0 remover-item"><i class="bi bi-x"></i></button></td>
+                        </tr>
+                        {% endfor %}
+                        {% endif %}
+                    </tbody>
+                </table>
+                <p class="text-muted text-center py-2 mb-0" id="vazioMsg">Nenhum item adicionado</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label">Total Itens</label>
+                    <input type="text" class="form-control fw-bold fs-5" id="totalItens" value="R$ 0,00" readonly>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Desconto</label>
+                    <input type="number" step="0.01" name="desconto" id="desconto" class="form-control" value="{{ venda.desconto or '0' }}" oninput="calcularTotal()">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Total Geral</label>
+                    <input type="text" class="form-control fw-bold fs-5" id="totalGeral" value="R$ 0,00" readonly>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Valor Pago</label>
+                    <input type="number" step="0.01" name="valor_pago" class="form-control" value="{{ venda.valor_pago or '0' }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Pagamento</label>
+                    <select name="forma_pagamento" class="form-select">
+                        <option value="">--</option>
+                        <option value="dinheiro" {% if venda and venda.forma_pagamento=='dinheiro' %}selected{% endif %}>Dinheiro</option>
+                        <option value="credito" {% if venda and venda.forma_pagamento=='credito' %}selected{% endif %}>Cartão Crédito</option>
+                        <option value="debito" {% if venda and venda.forma_pagamento=='debito' %}selected{% endif %}>Cartão Débito</option>
+                        <option value="pix" {% if venda and venda.forma_pagamento=='pix' %}selected{% endif %}>PIX</option>
+                        <option value="boleto" {% if venda and venda.forma_pagamento=='boleto' %}selected{% endif %}>Boleto</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <button class="btn btn-primary btn-lg"><i class="bi bi-check-lg"></i> Finalizar Venda</button>
+                    {% if venda and venda.id %}
+                    <a href="{{ url_for('cupom_venda', id=venda.id) }}" target="_blank" class="btn btn-outline-info btn-lg"><i class="bi bi-receipt"></i> Cupom</a>
+                    <a href="{{ url_for('recibo_venda', id=venda.id) }}" target="_blank" class="btn btn-outline-info btn-lg"><i class="bi bi-file-text"></i> Recibo</a>
+                    {% endif %}
+                    <a href="{{ url_for('listar_vendas') }}" class="btn btn-secondary btn-lg">Cancelar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+{% block scripts %}
+<script>
+var pecas = [
+    {% for p in pecas %}
+    {id:{{ p.id }}, nome:"{{ p.nome|e }}", preco:{{ p.preco_venda or 0 }}, estoque:{{ p.estoque_atual or 0 }}},
+    {% endfor %}
+];
+
+var itens = [];
+
+{% if venda and itens %}
+itens = [
+    {% for i in itens %}
+    {peca_id:{{ i.peca_id }}, nome:"{{ i.peca_nome|e }}", qtd:{{ i.quantidade }}, valor:{{ i.valor_unitario }}},
+    {% endfor %}
+];
+{% endif %}
+
+function atualizarTabela() {
+    var tbody = document.getElementById('corpoItens');
+    var vazio = document.getElementById('vazioMsg');
+    tbody.innerHTML = '';
+    if (itens.length === 0) {
+        vazio.style.display = '';
+        calcularTotal();
+        return;
+    }
+    vazio.style.display = 'none';
+    itens.forEach(function(item, idx) {
+        var subtotal = item.qtd * item.valor;
+        var tr = document.createElement('tr');
+        tr.innerHTML = '<td>'+item.nome+'</td><td>'+item.qtd+'</td><td>R$ '+item.valor.toFixed(2)+'</td><td class="subtotal">R$ '+subtotal.toFixed(2)+'</td><td><button type="button" class="btn btn-sm btn-outline-danger py-0 remover-item" data-idx="'+idx+'"><i class="bi bi-x"></i></button></td>';
+        tbody.appendChild(tr);
+    });
+    document.querySelectorAll('.remover-item').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            itens.splice(parseInt(this.dataset.idx), 1);
+            atualizarTabela();
+        });
+    });
+    calcularTotal();
+}
+
+function calcularTotal() {
+    var total = 0;
+    itens.forEach(function(item) { total += item.qtd * item.valor; });
+    var desconto = parseFloat(document.getElementById('desconto').value) || 0;
+    var geral = total - desconto;
+    if (geral < 0) geral = 0;
+    document.getElementById('totalItens').value = 'R$ '+total.toFixed(2);
+    document.getElementById('totalGeral').value = 'R$ '+geral.toFixed(2);
+}
+
+function adicionarItem(pecaId, nome, qtd, valor) {
+    if (!pecaId) return;
+    var existente = itens.findIndex(function(i) { return i.peca_id === pecaId; });
+    if (existente >= 0) {
+        itens[existente].qtd += qtd;
+        if (itens[existente].valor !== valor) itens[existente].valor = valor;
+    } else {
+        itens.push({peca_id: pecaId, nome: nome, qtd: qtd, valor: valor});
+    }
+    atualizarTabela();
+}
+
+document.getElementById('select_peca').addEventListener('change', function() {
+    var opt = this.selectedOptions[0];
+    if (opt && opt.value) {
+        document.getElementById('item_valor').value = opt.dataset.preco || '0';
+    }
+});
+
+document.getElementById('pesquisa_peca').addEventListener('input', function() {
+    var val = this.value.toLowerCase();
+    var opt = document.querySelector('#lista_pecas option[value="'+this.value+'"]');
+    if (opt) {
+        var sel = document.getElementById('select_peca');
+        var id = parseInt(opt.dataset.id);
+        for (var i = 0; i < sel.options.length; i++) {
+            if (parseInt(sel.options[i].value) === id) {
+                sel.value = id;
+                document.getElementById('item_valor').value = opt.dataset.preco || '0';
+                break;
+            }
+        }
+    }
+});
+
+document.getElementById('btnAdicionarItem').addEventListener('click', function() {
+    var sel = document.getElementById('select_peca');
+    var opt = sel.selectedOptions[0];
+    var pecId = parseInt(sel.value);
+    if (!pecId) {
+        alert('Selecione uma peça');
+        return;
+    }
+    var nome = opt.dataset.nome || '';
+    var qtd = parseInt(document.getElementById('item_qtd').value) || 1;
+    var valor = parseFloat(document.getElementById('item_valor').value) || 0;
+    adicionarItem(pecId, nome, qtd, valor);
+    sel.value = '';
+    document.getElementById('pesquisa_peca').value = '';
+    document.getElementById('item_qtd').value = '1';
+    document.getElementById('item_valor').value = '0';
+});
+
+document.getElementById('formVenda').addEventListener('submit', function(e) {
+    itens.forEach(function(item, idx) {
+        var inputId = document.createElement('input');
+        inputId.type = 'hidden';
+        inputId.name = 'peca_id[]';
+        inputId.value = item.peca_id;
+        this.appendChild(inputId);
+        var inputQtd = document.createElement('input');
+        inputQtd.type = 'hidden';
+        inputQtd.name = 'peca_qtd[]';
+        inputQtd.value = item.qtd;
+        this.appendChild(inputQtd);
+        var inputVal = document.createElement('input');
+        inputVal.type = 'hidden';
+        inputVal.name = 'peca_val[]';
+        inputVal.value = item.valor;
+        this.appendChild(inputVal);
+    }, this);
+});
+
+atualizarTabela();
+</script>
+{% endblock %}

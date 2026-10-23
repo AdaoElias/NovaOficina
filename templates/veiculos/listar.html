@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block titulo %}Veículos - Nova Oficina{% endblock %}
+{% block subtitulo %}Veículos{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <form class="d-flex gap-2" method="get">
+        <input type="text" name="busca" class="form-control form-control-sm" placeholder="Placa, cliente, marca..." value="{{ busca }}" style="width:300px">
+        <button class="btn btn-sm btn-outline-primary"><i class="bi bi-search"></i></button>
+    </form>
+    <a href="{{ url_for('criar_veiculo') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus"></i> Novo Veículo</a>
+</div>
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-sm mb-0">
+                <thead><tr><th>Placa</th><th>Cliente</th><th>Marca</th><th>Modelo</th><th>Ano</th><th>Cor</th><th>Ações</th></tr></thead>
+                <tbody>
+                    {% for v in veiculos %}
+                    <tr>
+                        <td>{{ v.placa }}</td>
+                        <td>{{ v.cliente_nome or '-' }}</td>
+                        <td>{{ v.marca_nome or '-' }}</td>
+                        <td>{{ v.modelo_nome or '-' }}</td>
+                        <td>{{ v.ano or '-' }}</td>
+                        <td>{{ v.cor_nome or '-' }}</td>
+                        <td>
+                            <a href="{{ url_for('editar_veiculo', id=v.id) }}" class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></a>
+                            <form method="post" action="{{ url_for('excluir_veiculo', id=v.id) }}" class="d-inline" onsubmit="return confirm('Excluir veículo {{ v.placa }}?')">
+                                <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="7" class="text-center text-muted py-3">Nenhum veículo encontrado</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

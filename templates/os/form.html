@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+{% block titulo %}{% if os %}Editar{% else %}Nova{% endif %} Ordem de Serviço - Nova Oficina{% endblock %}
+{% block subtitulo %}{% if os %}Editar{% else %}Nova{% endif %} Ordem de Serviço{% endblock %}
+{% block content %}
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="post" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Cliente *</label>
+                <select name="cliente_id" class="form-select" required>
+                    <option value="">-- Selecione --</option>
+                    {% for c in clientes %}
+                    <option value="{{ c.id }}" {% if os and os.cliente_id == c.id %}selected{% endif %}>{{ c.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Veículo</label>
+                <select name="veiculo_id" class="form-select">
+                    <option value="">--</option>
+                    {% for v in veiculos %}
+                    <option value="{{ v.id }}" {% if os and os.veiculo_id == v.id %}selected{% endif %}>{{ v.placa }} - {{ v.marca }} {{ v.modelo }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="aberta" {% if not os or os.status=='aberta' %}selected{% endif %}>Aberta</option>
+                    <option value="em_andamento" {% if os and os.status=='em_andamento' %}selected{% endif %}>Em Andamento</option>
+                    <option value="fechada" {% if os and os.status=='fechada' %}selected{% endif %}>Fechada</option>
+                    <option value="cancelada" {% if os and os.status=='cancelada' %}selected{% endif %}>Cancelada</option>
+                </select>
+            </div>
+            <div class="col-md-1">
+                <label class="form-label">KM Ent.</label>
+                <input type="number" name="km_entrada" class="form-control" value="{{ os.km_entrada if os else '' }}">
+            </div>
+            <div class="col-md-1">
+                <label class="form-label">KM Saída</label>
+                <input type="number" name="km_saida" class="form-control" value="{{ os.km_saida if os else '' }}">
+            </div>
+            <div class="col-12">
+                <label class="form-label">Observação</label>
+                <textarea name="observacao" class="form-control" rows="2">{{ os.observacao if os else '' }}</textarea>
+            </div>
+            <div class="col-12">
+                <button class="btn btn-primary">Salvar</button>
+                <a href="{{ url_for('listar_os') }}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if os %}
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-wrench"></i> Serviços</span>
+                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalServico"><i class="bi bi-plus"></i></button>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-sm mb-0">
+                    <thead><tr><th>Serviço</th><th>Qtd</th><th>Valor</th><th>Subtotal</th><th></th></tr></thead>
+                    <tbody>
+                        {% for s in os_servicos %}
+                        <tr>
+                            <td>{{ s.servico_nome }}</td>
+                            <td>{{ s.quantidade }}</td>
+                            <td>R$ {{ "%.2f"|format(s.valor_unitario) }}</td>
+                            <td>R$ {{ "%.2f"|format(s.subtotal) }}</td>
+                            <td><form method="post" action="{{ url_for('remover_servico_os', os_id=os.id, item_id=s.id) }}" class="d-inline"><button class="btn btn-sm btn-outline-danger py-0"><i class="bi bi-x"></i></button></form></td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="5" class="text-center text-muted py-2">Nenhum serviço</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-gear"></i> Peças</span>
+                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalPeca"><i class="bi bi-plus"></i></button>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-sm mb-0">
+                    <thead><tr><th>Peça</th><th>Qtd</th><th>Valor</th><th>Subtotal</th><th></th></tr></thead>
+                    <tbody>
+                        {% for p in os_pecas %}
+                        <tr>
+                            <td>{{ p.peca_nome }}</td>
+                            <td>{{ p.quantidade }}</td>
+                            <td>R$ {{ "%.2f"|format(p.valor_unitario) }}</td>
+                            <td>R$ {{ "%.2f"|format(p.subtotal) }}</td>
+                            <td><form method="post" action="{{ url_for('remover_peca_os', os_id=os.id, item_id=p.id) }}" class="d-inline"><button class="btn btn-sm btn-outline-danger py-0"><i class="bi bi-x"></i></button></form></td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="5" class="text-center text-muted py-2">Nenhuma peça</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-2"><label class="form-label">Total Serviços</label><input type="text" class="form-control" value="R$ {{ "%.2f"|format(os.total_servicos or 0) }}" readonly></div>
+            <div class="col-md-2"><label class="form-label">Total Peças</label><input type="text" class="form-control" value="R$ {{ "%.2f"|format(os.total_pecas or 0) }}" readonly></div>
+            <div class="col-md-2"><label class="form-label">Total Geral</label><input type="text" class="form-control fw-bold" value="R$ {{ "%.2f"|format(os.total_geral or 0) }}" readonly></div>
+            <div class="col-md-2"><label class="form-label">Desconto</label><input type="number" step="0.01" name="desconto" class="form-control" value="{{ os.desconto or '0' }}"></div>
+            <div class="col-md-2"><label class="form-label">Valor Pago</label><input type="number" step="0.01" name="valor_pago" class="form-control" value="{{ os.valor_pago or '0' }}"></div>
+            <div class="col-md-2"><label class="form-label">Pagamento</label>
+                <select name="forma_pagamento" class="form-select">
+                    <option value="">--</option>
+                    <option value="dinheiro" {% if os.forma_pagamento=='dinheiro' %}selected{% endif %}>Dinheiro</option>
+                    <option value="credito" {% if os.forma_pagamento=='credito' %}selected{% endif %}>Cartão Crédito</option>
+                    <option value="debito" {% if os.forma_pagamento=='debito' %}selected{% endif %}>Cartão Débito</option>
+                    <option value="pix" {% if os.forma_pagamento=='pix' %}selected{% endif %}>PIX</option>
+                    <option value="boleto" {% if os.forma_pagamento=='boleto' %}selected{% endif %}>Boleto</option>
+                </select>
+            </div>
+            <div class="col-12 mt-3">
+                <form method="post" class="d-inline">
+                    <input type="hidden" name="desconto" value="{{ os.desconto or 0 }}">
+                    <input type="hidden" name="valor_pago" value="{{ os.valor_pago or 0 }}">
+                    <input type="hidden" name="forma_pagamento" value="{{ os.forma_pagamento or '' }}">
+                    <input type="hidden" name="cliente_id" value="{{ os.cliente_id }}">
+                    <input type="hidden" name="veiculo_id" value="{{ os.veiculo_id or '' }}">
+                    <input type="hidden" name="status" value="{{ os.status }}">
+                    <input type="hidden" name="km_entrada" value="{{ os.km_entrada or '' }}">
+                    <input type="hidden" name="km_saida" value="{{ os.km_saida or '' }}">
+                    <input type="hidden" name="observacao" value="{{ os.observacao or '' }}">
+                    <button class="btn btn-primary">Atualizar Totais</button>
+                </form>
+                <a href="{{ url_for('listar_os') }}" class="btn btn-secondary">Voltar</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalServico" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{{ url_for('adicionar_servico_os', os_id=os.id) }}">
+                <div class="modal-header"><h5 class="modal-title">Adicionar Serviço</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Serviço</label>
+                        <select name="servico_id" class="form-select" required>
+                            <option value="">-- Selecione --</option>
+                            {% for s in servicos %}
+                            <option value="{{ s.id }}" data-valor="{{ s.valor_base or 0 }}">{{ s.nome }} - R$ {{ "%.2f"|format(s.valor_base or 0) }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Quantidade</label>
+                        <input type="number" name="quantidade" class="form-control" value="1" min="1">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Valor Unitário</label>
+                        <input type="number" step="0.01" name="valor_unitario" class="form-control" id="valor_servico" value="0">
+                    </div>
+                </div>
+                <div class="modal-footer"><button class="btn btn-primary">Adicionar</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalPeca" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{{ url_for('adicionar_peca_os', os_id=os.id) }}">
+                <div class="modal-header"><h5 class="modal-title">Adicionar Peça</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Peça</label>
+                        <select name="peca_id" class="form-select" required>
+                            <option value="">-- Selecione --</option>
+                            {% for p in pecas %}
+                            <option value="{{ p.id }}" data-valor="{{ p.preco_venda or 0 }}">{{ p.nome }} - R$ {{ "%.2f"|format(p.preco_venda or 0) }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Quantidade</label>
+                        <input type="number" name="quantidade" class="form-control" value="1" min="1">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Valor Unitário</label>
+                        <input type="number" step="0.01" name="valor_unitario" class="form-control" id="valor_peca" value="0">
+                    </div>
+                </div>
+                <div class="modal-footer"><button class="btn btn-primary">Adicionar</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+<script>
+document.querySelectorAll('[data-valor]').forEach(function(opt) {
+    opt.addEventListener('change', function() {
+        var inp = this.closest('form').querySelector('[name=valor_unitario]');
+        if (inp && this.selectedOptions[0]) {
+            inp.value = this.selectedOptions[0].dataset.valor || '0';
+        }
+    });
+    opt.addEventListener('click', function() {
+        var form = this.closest('form');
+        var inp = form.querySelector('[name=valor_unitario]');
+        if (inp && this.selectedOptions[0]) {
+            inp.value = this.selectedOptions[0].dataset.valor || '0';
+        }
+    });
+});
+document.querySelectorAll('select[name=servico_id], select[name=peca_id]').forEach(function(sel) {
+    sel.addEventListener('change', function() {
+        var inp = this.closest('form').querySelector('[name=valor_unitario]');
+        if (inp && this.selectedOptions[0]) {
+            inp.value = this.selectedOptions[0].dataset.valor || '0';
+        }
+    });
+});
+</script>
+{% endblock %}

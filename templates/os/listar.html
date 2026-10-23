@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block titulo %}Ordens de Serviço - Nova Oficina{% endblock %}
+{% block subtitulo %}Ordens de Serviço{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <form class="d-flex gap-2" method="get">
+        <select name="status" class="form-select form-select-sm" style="width:auto" onchange="this.form.submit()">
+            <option value="">Todos</option>
+            <option value="aberta" {% if status=='aberta' %}selected{% endif %}>Aberta</option>
+            <option value="em_andamento" {% if status=='em_andamento' %}selected{% endif %}>Em Andamento</option>
+            <option value="fechada" {% if status=='fechada' %}selected{% endif %}>Fechada</option>
+            <option value="cancelada" {% if status=='cancelada' %}selected{% endif %}>Cancelada</option>
+        </select>
+        <input type="text" name="busca" class="form-control form-control-sm" placeholder="Cliente, placa..." value="{{ busca }}" style="width:250px">
+        <button class="btn btn-sm btn-outline-primary"><i class="bi bi-search"></i></button>
+    </form>
+    <a href="{{ url_for('criar_os') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus"></i> Nova OS</a>
+</div>
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-sm mb-0">
+                <thead><tr><th>Nº</th><th>Data</th><th>Cliente</th><th>Placa</th><th>Status</th><th>Total</th><th>Ações</th></tr></thead>
+                <tbody>
+                    {% for o in ordens %}
+                    <tr>
+                        <td>{{ o.id }}</td>
+                        <td>{{ o.data_abertura | date_br }}</td>
+                        <td>{{ o.cliente_nome }}</td>
+                        <td>{{ o.placa or '-' }}</td>
+                        <td><span class="badge bg-{{ 'warning' if o.status=='aberta' else 'primary' if o.status=='em_andamento' else 'success' if o.status=='fechada' else 'secondary' }}">{{ o.status }}</span></td>
+                        <td>R$ {{ "%.2f"|format(o.total_geral or 0) }}</td>
+                        <td>
+                            <a href="{{ url_for('editar_os', id=o.id) }}" class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></a>
+                            <form method="post" action="{{ url_for('excluir_os', id=o.id) }}" class="d-inline" onsubmit="return confirm('Excluir OS #{{ o.id }}?')">
+                                <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="7" class="text-center text-muted py-3">Nenhuma OS encontrada</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

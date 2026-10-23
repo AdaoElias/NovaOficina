@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block titulo %}{% if usuario %}Editar{% else %}Novo{% endif %} Usuário - Nova Oficina{% endblock %}
+{% block subtitulo %}{% if usuario %}Editar{% else %}Novo{% endif %} Usuário{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form method="post" class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label">Nome *</label>
+                <input type="text" name="nome" class="form-control" value="{{ usuario.nome if usuario else '' }}" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Usuário *</label>
+                <input type="text" name="username" class="form-control" value="{{ usuario.username if usuario else '' }}" required {% if usuario %}readonly{% endif %}>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Email</label>
+                <input type="email" name="email" class="form-control" value="{{ usuario.email if usuario else '' }}">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Senha{% if usuario %}{% endif %}</label>
+                <input type="password" name="senha" class="form-control" {{ '' if usuario else 'required' }}>
+                {% if usuario %}<small class="text-muted">Deixe em branco para manter a senha atual</small>{% endif %}
+            </div>
+            <div class="col-md-3">
+                <div class="form-check mt-4">
+                    <input type="checkbox" name="admin" class="form-check-input" id="admin" value="1" {% if usuario and usuario.admin %}checked{% endif %}>
+                    <label class="form-check-label" for="admin">Administrador</label>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-check mt-4">
+                    <input type="checkbox" name="ativo" class="form-check-input" id="ativo" value="1" {% if not usuario or usuario.ativo %}checked{% endif %}>
+                    <label class="form-check-label" for="ativo">Ativo</label>
+                </div>
+            </div>
+            <div class="col-12">
+                <button class="btn btn-primary">Salvar</button>
+                <a href="{{ url_for('listar_usuarios') }}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

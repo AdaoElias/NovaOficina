@@ -1,0 +1,73 @@
+body {
+    background-color: #f0f2f5;
+    font-size: .9rem;
+}
+
+.navbar {
+    box-shadow: 0 2px 8px rgba(0,0,0,.1);
+}
+
+.card {
+    border: none;
+    box-shadow: 0 1px 3px rgba(0,0,0,.08);
+    border-radius: .75rem;
+}
+
+.card-header {
+    background-color: #fff;
+    border-bottom: 1px solid #eee;
+    font-weight: 600;
+}
+
+.table thead th {
+    border-bottom-color: #dee2e6;
+    color: #6c757d;
+    font-weight: 600;
+    font-size: .8rem;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    white-space: nowrap;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #e8f0fe;
+}
+
+.btn-sm {
+    font-size: .8rem;
+}
+
+.badge {
+    font-weight: 500;
+}
+
+.sidebar {
+    min-height: 100vh;
+    background: #1a3c6e;
+}
+
+.sidebar .nav-link {
+    color: rgba(255,255,255,.7);
+    border-radius: .5rem;
+    padding: .6rem 1rem;
+    font-size: .9rem;
+    transition: all .15s;
+}
+
+.sidebar .nav-link:hover {
+    color: #fff;
+    background: rgba(255,255,255,.1);
+}
+
+.sidebar .nav-link.active {
+    color: #fff;
+    background: #2d6bcb;
+}
+
+.sidebar .nav-link i {
+    width: 1.5rem;
+}

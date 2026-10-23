@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block titulo %}Empresa - Nova Oficina{% endblock %}
+{% block subtitulo %}Configurações da Empresa{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <ul class="nav nav-tabs card-header-tabs" id="empresaTabs">
+            <li class="nav-item">
+                <a class="nav-link active" href="#dados" data-bs-toggle="tab">Dados Gerais</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#endereco" data-bs-toggle="tab">Endereço</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#logo" data-bs-toggle="tab">Logotipo</a>
+            </li>
+        </ul>
+    </div>
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data" class="row g-3">
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="dados">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Razão Social</label>
+                            <input type="text" name="razao_social" class="form-control" value="{{ emp.razao_social or '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Nome Fantasia</label>
+                            <input type="text" name="nome_fantasia" class="form-control" value="{{ emp.nome_fantasia or '' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">CNPJ</label>
+                            <input type="text" name="cnpj" class="form-control cnpj-mask" value="{{ emp.cnpj or '' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Inscrição Estadual</label>
+                            <input type="text" name="ie" class="form-control" value="{{ emp.ie or '' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Slogan</label>
+                            <input type="text" name="slogan" class="form-control" value="{{ emp.slogan or '' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Telefone</label>
+                            <input type="text" name="telefone" class="form-control phone-mask" value="{{ emp.telefone or '' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Celular</label>
+                            <input type="text" name="celular" class="form-control phone-mask" value="{{ emp.celular or '' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">E-mail</label>
+                            <input type="email" name="email" class="form-control" value="{{ emp.email or '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Website</label>
+                            <input type="url" name="website" class="form-control" value="{{ emp.website or '' }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="endereco">
+                    <div class="row g-3">
+                        <div class="col-md-2">
+                            <label class="form-label">CEP</label>
+                            <input type="text" name="cep" class="form-control cep-mask" value="{{ emp.cep or '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Endereço</label>
+                            <input type="text" name="endereco" class="form-control" value="{{ emp.endereco or '' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Bairro</label>
+                            <input type="text" name="bairro" class="form-control" value="{{ emp.bairro or '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Cidade</label>
+                            <input type="text" name="cidade" class="form-control" value="{{ emp.cidade or '' }}">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">UF</label>
+                            <select name="uf" class="form-select">
+                                <option value="">Selecione</option>
+                                {% for uf_sigla in ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'] %}
+                                <option value="{{ uf_sigla }}" {% if emp.uf == uf_sigla %}selected{% endif %}>{{ uf_sigla }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Observação</label>
+                            <textarea name="observacao" class="form-control" rows="2">{{ emp.observacao or '' }}</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="logo">
+                    <div class="row g-3">
+                        <div class="col-12 text-center">
+                            {% if emp.logo_path %}
+                            <div class="mb-3">
+                                <p class="fw-bold mb-2">Logotipo atual:</p>
+                                <img src="{{ url_for('static', filename=emp.logo_path) }}" class="img-fluid border rounded" style="max-height:200px" id="logoPreview">
+                            </div>
+                            {% else %}
+                            <div class="mb-3 text-muted">
+                                <i class="bi bi-image" style="font-size:4rem"></i>
+                                <p class="mt-2">Nenhum logotipo cadastrado</p>
+                            </div>
+                            {% endif %}
+                            <label class="form-label fw-bold">Selecionar nova imagem</label>
+                            <input type="file" name="logo" class="form-control" accept="image/png,image/jpeg,image/gif,image/webp" onchange="document.getElementById('logoPreview').src=URL.createObjectURL(this.files[0])">
+                            <div class="form-text">Formatos: PNG, JPG, GIF, WEBP. Tamanho máximo recomendado: 500x500px.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 mt-4">
+                    <button class="btn btn-primary"><i class="bi bi-save"></i> Salvar</button>
+                    <a href="{{ url_for('index') }}" class="btn btn-secondary">Voltar</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+<script>
+$(function(){
+    $('.phone-mask').mask('(00)00000-0000');
+    $('.cnpj-mask').mask('00.000.000/0000-00');
+    $('.cep-mask').mask('00000-000');
+});
+</script>
+{% endblock %}

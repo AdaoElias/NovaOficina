@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block titulo %}Meu Perfil - Nova Oficina{% endblock %}
+{% block subtitulo %}Meu Perfil{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form method="post" class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label">Nome *</label>
+                <input type="text" name="nome" class="form-control" value="{{ usuario.nome }}" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Email</label>
+                <input type="email" name="email" class="form-control" value="{{ usuario.email or '' }}">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Usuário</label>
+                <input type="text" class="form-control" value="{{ usuario.username }}" readonly>
+            </div>
+            <div class="col-12"><hr></div>
+            <div class="col-md-4">
+                <label class="form-label">Senha Atual</label>
+                <input type="password" name="senha_atual" class="form-control">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Nova Senha</label>
+                <input type="password" name="senha_nova" class="form-control">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Confirmar Nova Senha</label>
+                <input type="password" name="senha_confirm" class="form-control">
+            </div>
+            <div class="col-12">
+                <button class="btn btn-primary">Salvar</button>
+                <a href="{{ url_for('index') }}" class="btn btn-secondary">Voltar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.querySelector('form').addEventListener('submit', function(e) {
+    var nova = this.querySelector('[name=senha_nova]');
+    var conf = this.querySelector('[name=senha_confirm]');
+    if (nova.value && nova.value !== conf.value) {
+        alert('Senhas não conferem');
+        e.preventDefault();
+    }
+});
+</script>
+{% endblock %}

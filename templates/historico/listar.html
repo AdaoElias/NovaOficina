@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block titulo %}Histórico - Nova Oficina{% endblock %}
+{% block subtitulo %}Histórico de Ações{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <form class="d-flex gap-2" method="get">
+        <input type="text" name="busca" class="form-control form-control-sm" placeholder="Usuário, ação, entidade..." value="{{ busca }}" style="width:300px">
+        <button class="btn btn-sm btn-outline-primary"><i class="bi bi-search"></i></button>
+    </form>
+</div>
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-sm mb-0">
+                <thead><tr><th>Data</th><th>Usuário</th><th>Ação</th><th>Entidade</th><th>Descrição</th></tr></thead>
+                <tbody>
+                    {% for l in registros %}
+                    <tr>
+                        <td class="text-nowrap">{{ l.criado_em | date_br }}</td>
+                        <td>{{ l.usuario_nome }}</td>
+                        <td>{{ l.acao }}</td>
+                        <td>{{ l.entidade }} #{{ l.entidade_id }}</td>
+                        <td>{{ l.descricao }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5" class="text-center text-muted py-3">Nenhum registro</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

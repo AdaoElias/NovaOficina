@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Recibo - Venda #{{ venda.id }}</title>
+<style>
+@page { margin: 15mm 20mm; size: A5 landscape; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; color: #222; }
+.recibo { max-width: 210mm; margin: 0 auto; }
+.header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; border-bottom: 2px solid #1a3c6e; padding-bottom: 12px; }
+.header img { max-height: 60px; }
+.header .emp-info { flex: 1; }
+.header .emp-info h1 { font-size: 18px; color: #1a3c6e; margin-bottom: 2px; }
+.header .emp-info .dados { font-size: 11px; color: #555; }
+.titulo-recibo { text-align: center; font-size: 16px; font-weight: bold; color: #1a3c6e; margin: 10px 0; }
+hr { border: none; border-top: 1px solid #ccc; margin: 8px 0; }
+.info-grid { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 11px; }
+.info-grid .bloco { flex: 1; }
+.info-grid .bloco strong { display: inline-block; min-width: 60px; }
+table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+table th { background: #1a3c6e; color: #fff; font-size: 11px; padding: 6px 8px; text-align: left; }
+table td { font-size: 11px; padding: 5px 8px; border-bottom: 1px solid #ddd; }
+table tr:nth-child(even) td { background: #f8f9fa; }
+table td.preco, table td.subtotal { text-align: right; }
+table td.qtd { text-align: center; }
+.total-box { background: #f0f4ff; border: 1px solid #1a3c6e; border-radius: 6px; padding: 10px 15px; margin: 10px 0; display: flex; justify-content: space-between; }
+.total-box .linha { display: flex; justify-content: space-between; margin-bottom: 3px; font-size: 12px; }
+.total-box .linha.total { font-size: 15px; font-weight: bold; color: #1a3c6e; border-top: 1px solid #1a3c6e; padding-top: 5px; margin-top: 5px; }
+.footer { text-align: center; margin-top: 20px; font-size: 10px; color: #888; border-top: 1px solid #ccc; padding-top: 10px; }
+.footer .assinatura { margin-top: 25px; display: flex; justify-content: space-between; }
+.footer .assinatura div { text-align: center; border-top: 1px solid #333; padding-top: 4px; min-width: 180px; font-size: 11px; color: #333; }
+.no-print { text-align: center; margin-top: 20px; }
+.no-print button { padding: 8px 24px; font-size: 14px; cursor: pointer; margin: 0 5px; border: 1px solid #1a3c6e; background: #fff; border-radius: 4px; }
+.no-print button:hover { background: #1a3c6e; color: #fff; }
+@media print {
+    .no-print { display: none; }
+    @page { margin: 15mm 20mm; size: A5 landscape; }
+}
+</style>
+</head>
+<body>
+    <div class="recibo">
+        <div class="header">
+            {% if emp and emp.logo_path %}
+            <img src="{{ url_for('static', filename=emp.logo_path) }}" alt="Logo">
+            {% endif %}
+            <div class="emp-info">
+                <h1>{{ emp.nome_fantasia or emp.razao_social or 'Nova Oficina' }}</h1>
+                <div class="dados">
+                    {% if emp.cnpj %}CNPJ: {{ emp.cnpj }} | {% endif %}
+                    {% if emp.ie %}IE: {{ emp.ie }} | {% endif %}
+                    {% if emp.telefone %}Tel: {{ emp.telefone }}{% endif %}
+                    {% if emp.celular %} / {{ emp.celular }}{% endif %}<br>
+                    {% if emp.endereco %}{{ emp.endereco }}{% endif %}
+                    {% if emp.cidade %} - {{ emp.cidade }}/{{ emp.uf }}{% endif %}
+                    {% if emp.cep %} - CEP: {{ emp.cep }}{% endif %}<br>
+                    {% if emp.email %}{{ emp.email }} | {% endif %}
+                    {% if emp.website %}{{ emp.website }}{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="titulo-recibo">RECIBO</div>
+
+        <div class="info-grid">
+            <div class="bloco">
+                <strong>Venda Nº:</strong> {{ venda.id }}<br>
+                <strong>Data:</strong> {{ venda.data | date_br }}
+            </div>
+            <div class="bloco">
+                <strong>Cliente:</strong> {{ venda.cliente_nome or 'Cliente avulso' }}<br>
+                {% if venda.cliente_cpf_cnpj %}<strong>CPF/CNPJ:</strong> {{ venda.cliente_cpf_cnpj }}{% endif %}
+            </div>
+            <div class="bloco">
+                <strong>Pagamento:</strong> {{ venda.forma_pagamento or '-' }}<br>
+                <strong>Emissão:</strong> {{ now.strftime('%d/%m/%Y %H:%M') }}
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr><th style="width:50%">Item</th><th style="width:12%" class="qtd">Quantidade</th><th style="width:18%" class="preco">Valor Unit.</th><th style="width:20%" class="subtotal">Subtotal</th></tr>
+            </thead>
+            <tbody>
+                {% for i in itens %}
+                <tr>
+                    <td>{{ i.nome }}</td>
+                    <td class="qtd">{{ i.quantidade }}</td>
+                    <td class="preco">R$ {{ "%.2f"|format(i.valor_unitario) }}</td>
+                    <td class="subtotal">R$ {{ "%.2f"|format(i.subtotal) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="total-box">
+            <div style="flex:1">
+                <div class="linha"><span>Subtotal:</span><span>R$ {{ "%.2f"|format(venda.total + venda.desconto) }}</span></div>
+                {% if venda.desconto > 0 %}
+                <div class="linha"><span>Desconto:</span><span>- R$ {{ "%.2f"|format(venda.desconto) }}</span></div>
+                {% endif %}
+                <div class="linha total"><span>TOTAL:</span><span>R$ {{ "%.2f"|format(venda.total) }}</span></div>
+            </div>
+            <div style="flex:1;text-align:right;border-left:1px solid #1a3c6e;padding-left:15px;margin-left:15px">
+                <div class="linha"><span>Valor Pago:</span><span>R$ {{ "%.2f"|format(venda.valor_pago) }}</span></div>
+                <div class="linha"><span>Troco:</span><span>R$ {{ "%.2f"|format(venda.valor_pago - venda.total) }}</span></div>
+                <div class="linha" style="margin-top:8px"><span>Forma de Pagamento:</span><span>{{ venda.forma_pagamento or '-' }}</span></div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div>Emitido por {{ session.get('usuario_nome', 'Sistema') }} em {{ now.strftime('%d/%m/%Y às %H:%M') }}</div>
+            {% if emp and emp.slogan %}<div style="margin-top:4px">{{ emp.slogan }}</div>{% endif %}
+
+            <div class="assinatura">
+                <div>____________________________<br>Cliente</div>
+                <div>____________________________<br>Responsável</div>
+            </div>
+
+            <div class="no-print">
+                <button onclick="window.print()"><i class="bi bi-printer"></i> Imprimir</button>
+                <button onclick="window.close()">Fechar</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

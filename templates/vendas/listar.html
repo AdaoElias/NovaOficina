@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block titulo %}Vendas - Nova Oficina{% endblock %}
+{% block subtitulo %}Vendas{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <form class="d-flex gap-2" method="get">
+        <input type="text" name="busca" class="form-control form-control-sm" placeholder="Cliente..." value="{{ busca }}" style="width:250px">
+        <button class="btn btn-sm btn-outline-primary"><i class="bi bi-search"></i></button>
+    </form>
+    <a href="{{ url_for('criar_venda') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus"></i> Nova Venda</a>
+</div>
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-sm mb-0">
+                <thead><tr><th>Nº</th><th>Data</th><th>Cliente</th><th>Total</th><th>Desconto</th><th>Pago</th><th>Pagamento</th><th>Ações</th></tr></thead>
+                <tbody>
+                    {% for v in vendas %}
+                    <tr>
+                        <td>{{ v.id }}</td>
+                        <td>{{ v.data | date_br }}</td>
+                        <td>{{ v.cliente_nome or '-' }}</td>
+                        <td>R$ {{ "%.2f"|format(v.total or 0) }}</td>
+                        <td>R$ {{ "%.2f"|format(v.desconto or 0) }}</td>
+                        <td>R$ {{ "%.2f"|format(v.valor_pago or 0) }}</td>
+                        <td>{{ v.forma_pagamento or '-' }}</td>
+                        <td>
+                            <a href="{{ url_for('editar_venda', id=v.id) }}" class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></a>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-outline-info dropdown-toggle" data-bs-toggle="dropdown"><i class="bi bi-printer"></i></button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{{ url_for('cupom_venda', id=v.id) }}" target="_blank"><i class="bi bi-receipt"></i> Cupom (80mm)</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('recibo_venda', id=v.id) }}" target="_blank"><i class="bi bi-file-text"></i> Recibo (A5)</a></li>
+                                </ul>
+                            </div>
+                            <form method="post" action="{{ url_for('excluir_venda', id=v.id) }}" class="d-inline" onsubmit="return confirm('Excluir venda #{{ v.id }}?')">
+                                <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="8" class="text-center text-muted py-3">Nenhuma venda encontrada</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

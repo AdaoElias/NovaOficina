@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block titulo %}Relatórios - Nova Oficina{% endblock %}
+{% block subtitulo %}Relatórios{% endblock %}
+{% block content %}
+<form class="row g-2 mb-4">
+    <div class="col-auto">
+        <label class="form-label">Início</label>
+        <input type="date" name="inicio" class="form-control form-control-sm" value="{{ ini }}">
+    </div>
+    <div class="col-auto">
+        <label class="form-label">Fim</label>
+        <input type="date" name="fim" class="form-control form-control-sm" value="{{ fim }}">
+    </div>
+    <div class="col-auto d-flex align-items-end">
+        <button class="btn btn-sm btn-primary"><i class="bi bi-search"></i> Filtrar</button>
+    </div>
+</form>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card text-center p-3 border-0 shadow-sm">
+            <div class="fs-4 fw-bold text-primary">{{ os_periodo.total }}</div>
+            <div class="text-muted small">OS no Período</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center p-3 border-0 shadow-sm">
+            <div class="fs-4 fw-bold text-success">R$ {{ "%.2f"|format(os_periodo.faturamento or 0) }}</div>
+            <div class="text-muted small">Faturamento OS</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center p-3 border-0 shadow-sm">
+            <div class="fs-4 fw-bold text-info">{{ vendas_periodo.total }}</div>
+            <div class="text-muted small">Vendas no Período</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center p-3 border-0 shadow-sm">
+            <div class="fs-4 fw-bold text-warning">R$ {{ "%.2f"|format(vendas_periodo.valor or 0) }}</div>
+            <div class="text-muted small">Valor Vendas</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center p-3 border-0 shadow-sm">
+            <div class="fs-4 fw-bold text-danger">{{ pecas_baixa }}</div>
+            <div class="text-muted small">Peças Estoque Baixo</div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white"><strong>OS por Status</strong></div>
+            <div class="card-body">
+                {% for s in os_status %}
+                <div class="d-flex justify-content-between mb-1">
+                    <span>{{ s.status }}</span>
+                    <span class="fw-bold">{{ s.qtd }}</span>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">Nenhuma OS no período</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white"><strong>Top Serviços</strong></div>
+            <div class="card-body p-0">
+                <table class="table table-sm mb-0">
+                    <thead><tr><th>Serviço</th><th>Qtd</th><th>Total</th></tr></thead>
+                    <tbody>
+                        {% for s in top_servicos %}
+                        <tr><td>{{ s.nome }}</td><td>{{ s.qtd }}</td><td>R$ {{ "%.2f"|format(s.total) }}</td></tr>
+                        {% else %}
+                        <tr><td colspan="3" class="text-center text-muted">Nenhum serviço</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

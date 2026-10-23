@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block titulo %}Configurações - Nova Oficina{% endblock %}
+{% block subtitulo %}Configurações{% endblock %}
+{% block content %}
+{% set tabelas = [
+    ('marcas', 'Marcas', marcas),
+    ('cores', 'Cores', cores),
+    ('categorias_veiculo', 'Categorias de Veículo', cat_veic),
+    ('categorias_servico', 'Categorias de Serviço', cat_serv),
+    ('categorias_peca', 'Categorias de Peça', cat_peca),
+] %}
+{% for tname, tlabel, trows in tabelas %}
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <strong>{{ tlabel }}</strong>
+        <button class="btn btn-sm btn-primary" onclick="document.getElementById('form-{{ tname }}').style.display=''">Adicionar</button>
+    </div>
+    <div class="card-body py-2">
+        <form method="post" id="form-{{ tname }}" style="display:none" class="row g-2 mb-2">
+            <input type="hidden" name="acao" value="add">
+            <input type="hidden" name="tabela" value="{{ tname }}">
+            <div class="col-auto"><input type="text" name="nome" class="form-control form-control-sm" placeholder="Nome..." required></div>
+            <div class="col-auto"><button class="btn btn-sm btn-success">Salvar</button></div>
+        </form>
+        <div class="d-flex flex-wrap gap-2">
+            {% for r in trows %}
+            <span class="badge bg-light text-dark border d-inline-flex align-items-center gap-1">
+                {{ r.nome }}
+                <form method="post" class="d-inline" onsubmit="return confirm('Remover {{ r.nome }}?')">
+                    <input type="hidden" name="acao" value="del">
+                    <input type="hidden" name="tabela" value="{{ tname }}">
+                    <input type="hidden" name="item_id" value="{{ r.id }}">
+                    <button class="btn btn-sm py-0 px-1 text-danger" style="line-height:1"><i class="bi bi-x"></i></button>
+                </form>
+            </span>
+            {% else %}
+            <span class="text-muted small">Nenhum registro</span>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <strong>Modelos</strong>
+        <button class="btn btn-sm btn-primary" onclick="document.getElementById('form-modelos').style.display=''">Adicionar</button>
+    </div>
+    <div class="card-body py-2">
+        <form method="post" id="form-modelos" style="display:none" class="row g-2 mb-2">
+            <input type="hidden" name="acao" value="add">
+            <input type="hidden" name="tabela" value="modelos">
+            <div class="col-auto">
+                <select name="marca_id" class="form-select form-select-sm" required>
+                    <option value="">Marca</option>
+                    {% for m in marcas %}<option value="{{ m.id }}">{{ m.nome }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="col-auto"><input type="text" name="nome" class="form-control form-control-sm" placeholder="Modelo..." required></div>
+            <div class="col-auto"><button class="btn btn-sm btn-success">Salvar</button></div>
+        </form>
+        <div class="d-flex flex-wrap gap-2">
+            {% for r in modelos %}
+            <span class="badge bg-light text-dark border d-inline-flex align-items-center gap-1">
+                {{ r.marca_nome }} - {{ r.nome }}
+                <form method="post" class="d-inline" onsubmit="return confirm('Remover {{ r.nome }}?')">
+                    <input type="hidden" name="acao" value="del">
+                    <input type="hidden" name="tabela" value="modelos">
+                    <input type="hidden" name="item_id" value="{{ r.id }}">
+                    <button class="btn btn-sm py-0 px-1 text-danger" style="line-height:1"><i class="bi bi-x"></i></button>
+                </form>
+            </span>
+            {% else %}
+            <span class="text-muted small">Nenhum registro</span>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+<script>
+document.querySelectorAll('[id^=form-]').forEach(function(f) {
+    f.querySelector('[name=nome]').addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') f.style.display = 'none';
+    });
+});
+</script>
+{% endblock %}

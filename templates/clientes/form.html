@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block titulo %}{% if cliente %}Editar{% else %}Novo{% endif %} Cliente - Nova Oficina{% endblock %}
+{% block subtitulo %}{% if cliente %}Editar{% else %}Novo{% endif %} Cliente{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form method="post" class="row g-3" novalidate>
+            <div class="col-md-6">
+                <label class="form-label">Nome *</label>
+                <input type="text" name="nome" class="form-control" value="{{ cliente.nome if cliente else '' }}" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Telefone</label>
+                <input type="text" name="telefone" class="form-control mascara-telefone" value="{{ cliente.telefone if cliente else '' }}" placeholder="(11)99999-9999">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Email</label>
+                <input type="email" name="email" class="form-control" value="{{ cliente.email if cliente else '' }}" pattern="[^@\s]+@[^@\s]+\.[^@\s]+" title="Informe um email válido com @">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">CPF/CNPJ</label>
+                <input type="text" name="cpf_cnpj" class="form-control mascara-documento" value="{{ cliente.cpf_cnpj if cliente else '' }}" placeholder="000.000.000-00 ou 00.000.000/0000-00">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">CEP</label>
+                <input type="text" name="cep" class="form-control mascara-cep" value="{{ cliente.cep if cliente else '' }}" placeholder="00000-000" maxlength="9">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Endereço</label>
+                <input type="text" name="endereco" class="form-control" value="{{ cliente.endereco if cliente else '' }}" id="endereco">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Bairro</label>
+                <input type="text" name="bairro" class="form-control" value="{{ cliente.bairro if cliente else '' }}" id="bairro">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Cidade</label>
+                <input type="text" name="cidade" class="form-control" value="{{ cliente.cidade if cliente else '' }}" id="cidade">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">UF</label>
+                <select name="uf" class="form-select" id="uf">
+                    <option value="">--</option>
+                    {% for u in ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'] %}
+                    <option value="{{ u }}" {% if cliente and cliente.uf == u %}selected{% endif %}>{{ u }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12">
+                <label class="form-label">Observação</label>
+                <textarea name="observacao" class="form-control" rows="2">{{ cliente.observacao if cliente else '' }}</textarea>
+            </div>
+            <div class="col-12">
+                <button class="btn btn-primary">Salvar</button>
+                <a href="{{ url_for('listar_clientes') }}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function mascaraTelefone(v) {
+    v = v.replace(/\D/g,'');
+    if (v.length > 11) v = v.slice(0,11);
+    if (v.length > 6) return '('+v.slice(0,2)+')'+v.slice(2,7)+'-'+v.slice(7);
+    if (v.length > 2) return '('+v.slice(0,2)+')'+v.slice(2);
+    if (v.length > 0) return '('+v;
+    return v;
+}
+function mascaraDocumento(v) {
+    v = v.replace(/\D/g,'');
+    if (v.length > 14) v = v.slice(0,14);
+    if (v.length > 12) return v.slice(0,2)+'.'+v.slice(2,5)+'.'+v.slice(5,8)+'/'+v.slice(8,12)+'-'+v.slice(12);
+    if (v.length > 9) return v.slice(0,3)+'.'+v.slice(3,6)+'.'+v.slice(6,9)+'-'+v.slice(9);
+    if (v.length > 6) return v.slice(0,3)+'.'+v.slice(3,6)+'.'+v.slice(6);
+    if (v.length > 3) return v.slice(0,3)+'.'+v.slice(3);
+    return v;
+}
+function mascaraCEP(v) {
+    v = v.replace(/\D/g,'');
+    if (v.length > 8) v = v.slice(0,8);
+    if (v.length > 5) return v.slice(0,5)+'-'+v.slice(5);
+    return v;
+}
+document.querySelectorAll('.mascara-telefone').forEach(function(el) {
+    el.addEventListener('input', function() {
+        var p = this.selectionStart;
+        this.value = mascaraTelefone(this.value);
+        this.setSelectionRange(p, p);
+    });
+});
+document.querySelectorAll('.mascara-documento').forEach(function(el) {
+    el.addEventListener('input', function() {
+        var p = this.selectionStart;
+        this.value = mascaraDocumento(this.value);
+        this.setSelectionRange(p, p);
+    });
+});
+document.querySelectorAll('.mascara-cep').forEach(function(el) {
+    el.addEventListener('input', function() {
+        var p = this.selectionStart;
+        this.value = mascaraCEP(this.value);
+        this.setSelectionRange(p, p);
+    });
+    el.addEventListener('blur', function() {
+        var cep = this.value.replace(/\D/g,'');
+        if (cep.length === 8) {
+            fetch('https://viacep.com.br/ws/'+cep+'/json/').then(function(r){return r.json()}).then(function(d){
+                if (!d.erro) {
+                    document.getElementById('endereco').value = d.logradouro || '';
+                    document.getElementById('bairro').value = d.bairro || '';
+                    document.getElementById('cidade').value = d.localidade || '';
+                    document.getElementById('uf').value = d.uf || '';
+                }
+            });
+        }
+    });
+});
+document.querySelector('form').addEventListener('submit', function(e) {
+    var email = this.querySelector('[name=email]');
+    if (email.value && !email.value.includes('@')) {
+        alert('Email deve conter @');
+        e.preventDefault();
+    }
+});
+</script>
+{% endblock %}
